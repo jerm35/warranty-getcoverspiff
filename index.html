@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<!-- repo: warranty-getcoverspiff -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTL GetCover Spiff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="/ctl-auth.js"></script>
+<style>
+:root {
+  --accent-h: 270;
+  --accent-s: 70%;
+  --accent-surface: hsl(var(--accent-h), var(--accent-s), 92%);
+  --accent-on-surface: hsl(var(--accent-h), var(--accent-s), 28%);
+  --accent: hsl(var(--accent-h), var(--accent-s), 45%);
+  --accent-hover: hsl(var(--accent-h), var(--accent-s), 38%);
+  --bg: #f1f3f5;
+  --surface: #ffffff;
+  --surface2: #f8f9fa;
+  --surface3: #f1f3f5;
+  --border: #dee2e6;
+  --border-hover: #adb5bd;
+  --text: #212529;
+  --text-dim: #495057;
+  --text-faint: #868e96;
+  --green: #2b8a3e;
+  --orange: #e67700;
+  --red: #c92a2a;
+  --purple: #7048e8;
+  --cyan: #0c8599;
+  --font-ui: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --fs: 15px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-3: 0 8px 24px rgba(0,0,0,0.12);
+}
+[data-theme="dark"] {
+  --accent-surface: hsl(var(--accent-h), calc(var(--accent-s) * 0.6), 18%);
+  --accent-on-surface: hsl(var(--accent-h), var(--accent-s), 75%);
+  --accent: hsl(var(--accent-h), var(--accent-s), 55%);
+  --accent-hover: hsl(var(--accent-h), var(--accent-s), 62%);
+  --bg: #111213;
+  --surface: #1a1b1e;
+  --surface2: #212226;
+  --surface3: #2c2d31;
+  --border: #373a40;
+  --border-hover: #5c5f66;
+  --text: #e9ecef;
+  --text-dim: #adb5bd;
+  --text-faint: #6c757d;
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-3: 0 8px 24px rgba(0,0,0,0.4);
+}
+[data-theme="light-dim"] {
+  --accent-surface: hsl(var(--accent-h), calc(var(--accent-s) * 0.8), 88%);
+  --accent-on-surface: hsl(var(--accent-h), var(--accent-s), 30%);
+  --bg: #e5e7ea;
+  --surface: #f0f1f3;
+  --surface2: #e8eaec;
+  --surface3: #dfe1e4;
+  --border: #cdd1d6;
+  --border-hover: #a0a6ad;
+  --text: #2c3034;
+  --text-dim: #555b62;
+  --text-faint: #7c838b;
+}
+[data-theme="dark-dim"] {
+  --accent-surface: hsl(var(--accent-h), calc(var(--accent-s) * 0.5), 20%);
+  --accent-on-surface: hsl(var(--accent-h), var(--accent-s), 70%);
+  --accent: hsl(var(--accent-h), var(--accent-s), 50%);
+  --bg: #1a1c1e;
+  --surface: #242628;
+  --surface2: #2c2e31;
+  --surface3: #353739;
+  --border: #44474b;
+  --border-hover: #62666b;
+  --text: #dce0e5;
+  --text-dim: #9da3ab;
+  --text-faint: #6e747c;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: var(--fs); }
+body { font-family: var(--font-ui); background: var(--bg); color: var(--text); min-height: 100vh; }
+.hidden { display: none !important; }
+input, button, select { font-family: inherit; font-size: inherit; }
+
+.login-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--bg); padding: 24px;
+}
+.login-logo { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.login-logo span { color: var(--accent); }
+.login-subtitle { max-width: 460px; text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+.login-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface2); border-radius: var(--radius-full); padding: 4px; }
+.login-tab { border: none; background: transparent; padding: 8px 18px; border-radius: var(--radius-full); cursor: pointer; font-weight: 500; color: var(--text-dim); transition: all 0.2s; }
+.login-tab.active { background: var(--accent); color: #fff; }
+.login-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+.login-input { padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; transition: border-color 0.2s; }
+.login-input:focus { border-color: var(--accent); }
+.login-btn { padding: 12px; border: none; border-radius: var(--radius-sm); background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.login-btn:hover { background: var(--accent-hover); }
+.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; }
+.login-success { color: var(--green); font-size: 13px; text-align: center; margin-top: 8px; }
+#google-btn-container { display: flex; justify-content: center; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px; background: var(--surface);
+  border-bottom: 1px solid var(--border); box-shadow: var(--shadow-1);
+}
+.topbar-logo { font-weight: 700; font-size: 16px; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.topbar-logo span { color: var(--accent); }
+.logo-icon {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+}
+.logo-icon svg { width: 18px; height: 18px; }
+.topbar-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+.topbar-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.h-btn { width: 34px; height: 34px; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.h-btn:hover { background: var(--surface3); }
+.h-btn svg { width: 18px; height: 18px; }
+.topbar-btn { padding: 6px 14px; border: none; border-radius: var(--radius-sm); background: var(--surface2); color: var(--text-dim); cursor: pointer; font-weight: 500; font-size: 13px; transition: background 0.15s; }
+.topbar-btn:hover { background: var(--surface3); }
+.topbar-btn.primary { background: var(--accent); color: #fff; }
+.topbar-btn.primary:hover { background: var(--accent-hover); }
+.user-info { font-size: 13px; color: var(--text-dim); font-weight: 500; white-space: nowrap; }
+
+.main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+
+.summary-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.summary-card {
+  flex: 1; min-width: 180px;
+  background: var(--surface); border-radius: var(--radius-md);
+  padding: 16px 20px; box-shadow: var(--shadow-1);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.summary-label { font-size: 12px; font-weight: 500; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; }
+.summary-value { font-family: var(--font-mono); font-size: 24px; font-weight: 600; color: var(--accent); }
+
+.month-group {
+  background: var(--surface); border-radius: var(--radius-lg);
+  margin-bottom: 12px; box-shadow: var(--shadow-1);
+  overflow: hidden; transition: box-shadow 0.2s;
+}
+.month-group:hover { box-shadow: var(--shadow-2); }
+.month-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; cursor: pointer; user-select: none;
+  transition: background 0.15s;
+}
+.month-header:hover { background: var(--surface2); }
+.month-icon {
+  font-size: 12px; color: var(--text-faint); transition: transform 0.2s;
+  width: 20px; text-align: center; flex-shrink: 0;
+}
+.month-group.collapsed .month-icon { transform: rotate(-90deg); }
+.month-label { font-weight: 600; font-size: 16px; }
+.month-stats { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.month-count {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  padding: 3px 12px; border-radius: var(--radius-full);
+  background: var(--accent-surface); color: var(--accent-on-surface);
+}
+.month-units {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  color: var(--green);
+}
+.month-csv {
+  width: 32px; height: 32px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.month-csv:hover { background: var(--accent-surface); border-color: var(--accent); color: var(--accent); }
+.month-csv svg { width: 16px; height: 16px; }
+.month-body { border-top: 1px solid var(--border); padding: 8px 0; }
+.month-group.collapsed .month-body { display: none; }
+.month-loading { padding: 20px; text-align: center; color: var(--text-faint); font-size: 14px; }
+
+.rep-block { margin: 12px 16px 18px; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.rep-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.rep-name { font-weight: 600; font-size: 14px; }
+.rep-subtotal {
+  margin-left: auto; font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  padding: 2px 10px; border-radius: var(--radius-full);
+  background: var(--accent-surface); color: var(--accent-on-surface);
+}
+
+.spiff-table { width: 100%; border-collapse: collapse; font-size: var(--fs); }
+.spiff-table th {
+  text-align: left; padding: 8px 12px; font-size: 12px; font-weight: 600;
+  color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.spiff-table td {
+  padding: 7px 12px; border-bottom: 1px solid var(--border);
+  font-size: 14px; color: var(--text);
+}
+.spiff-table tr:last-child td { border-bottom: none; }
+.spiff-table tr:hover td { background: var(--surface2); }
+.dt-so, .dt-inv { font-family: var(--font-mono); font-size: 13px; color: var(--accent-on-surface); white-space: nowrap; }
+.dt-date { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+.dt-code { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--purple); }
+.dt-qty { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--green); text-align: right; }
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.5); display: flex;
+  align-items: center; justify-content: center; padding: 24px;
+}
+.modal {
+  background: var(--surface); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3); width: 100%; max-width: 600px;
+  max-height: 80vh; display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.modal-title { font-weight: 700; font-size: 18px; }
+.modal-close {
+  width: 32px; height: 32px; border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-dim); cursor: pointer;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--surface3); }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+.admin-gate { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.admin-tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--surface2); border-radius: var(--radius-full); padding: 4px; }
+.admin-tab { border: none; background: transparent; padding: 6px 16px; border-radius: var(--radius-full); cursor: pointer; font-weight: 500; font-size: 13px; color: var(--text-dim); transition: all 0.2s; }
+.admin-tab.active { background: var(--accent); color: #fff; }
+.admin-req-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--surface2); border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.admin-req-email { font-weight: 500; flex: 1; }
+.admin-req-date { font-size: 12px; color: var(--text-faint); font-family: var(--font-mono); }
+.admin-req-btn {
+  padding: 4px 12px; border: none; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+}
+.admin-req-btn:hover { opacity: 0.85; }
+.admin-req-btn.approve { background: var(--green); color: #fff; }
+.admin-req-btn.deny { background: var(--red); color: #fff; }
+.admin-user-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+}
+.admin-user-email { font-weight: 500; flex: 1; font-size: 14px; }
+.admin-user-status {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: var(--radius-full);
+}
+.admin-user-status.approved { background: hsl(140, 50%, 90%); color: hsl(140, 50%, 30%); }
+.admin-user-status.pending { background: hsl(40, 80%, 90%); color: hsl(40, 80%, 30%); }
+.admin-user-status.denied { background: hsl(0, 60%, 90%); color: hsl(0, 60%, 30%); }
+.admin-user-actions { display: flex; gap: 6px; }
+.admin-user-btn {
+  padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-dim); cursor: pointer; font-size: 12px;
+  transition: all 0.15s;
+}
+.admin-user-btn:hover { background: var(--surface3); border-color: var(--border-hover); }
+.admin-temp-pw {
+  margin-top: 8px; padding: 10px 14px; background: var(--accent-surface);
+  border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 14px;
+  color: var(--accent-on-surface); text-align: center;
+}
+
+.color-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 16px; }
+.color-swatch {
+  width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid transparent;
+  cursor: pointer; transition: border-color 0.15s, transform 0.15s;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.active { border-color: var(--text); }
+.settings-group { margin-bottom: 16px; }
+.settings-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.theme-row { display: flex; gap: 8px; }
+.theme-btn { flex: 1; padding: 8px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text-dim); cursor: pointer; font-size: 12px; font-weight: 500; text-align: center; transition: all 0.2s; }
+.theme-btn.active { border-color: var(--accent); background: var(--accent-surface); color: var(--accent-on-surface); }
+.font-slider { width: 100%; }
+
+.loading-screen { text-align: center; padding: 60px 20px; color: var(--text-faint); }
+.loading-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-faint); font-size: 14px; }
+
+@keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.month-group { animation: cardIn 0.3s ease backwards; }
+
+@media (max-width: 700px) {
+  .topbar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .summary-bar { flex-direction: column; }
+  .main { padding: 12px; }
+  .spiff-table { font-size: 13px; }
+  .spiff-table th, .spiff-table td { padding: 6px 8px; }
+  .month-stats { gap: 8px; }
+  .rep-block { margin: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-logo"><span>CTL</span> GetCover Spiff</div>
+  <div class="login-subtitle">GetCover warranty spiff tracker. Monthly sales-rep view of spiff-eligible warranty contracts (WRCB****GC). CTL staff sign in with Google; external users request access.</div>
+
+  <div class="login-tabs">
+    <button class="login-tab active" onclick="switchLoginTab('signin')">Sign In</button>
+    <button class="login-tab" onclick="switchLoginTab('request')">Request Access</button>
+    <button class="login-tab" onclick="switchLoginTab('ctl')">CTL Staff</button>
+  </div>
+
+  <div class="login-form" id="form-signin">
+    <input type="email" class="login-input" id="signin-email" placeholder="Email address">
+    <input type="password" class="login-input" id="signin-password" placeholder="Password">
+    <button class="login-btn" onclick="doSignIn()">Sign In</button>
+  </div>
+
+  <div class="login-form hidden" id="form-request">
+    <input type="email" class="login-input" id="request-email" placeholder="Email address">
+    <input type="password" class="login-input" id="request-password" placeholder="Create a password (6+ chars)">
+    <button class="login-btn" onclick="doRequestAccess()">Request Access</button>
+  </div>
+
+  <div class="login-form hidden" id="form-ctl">
+    <div id="google-btn-container"></div>
+  </div>
+
+  <div class="login-error" id="login-error"></div>
+  <div class="login-success hidden" id="login-success"></div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar hidden" id="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v8l7 4 7-4V6l-7-4z" stroke="#fff" stroke-width="1.5" fill="none"/><path d="M6 10l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span>CTL</span> GetCover Spiff
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-actions">
+    <button class="h-btn" onclick="openHelpModal()" title="Help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+    <button class="h-btn" onclick="toggleTheme()" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+    <button class="h-btn" onclick="openAccentPicker()" title="Appearance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg></button>
+    <button class="h-btn hidden" id="btn-admin" onclick="openAdminModal()" title="Admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+    <button class="topbar-btn primary" onclick="loadSummary()">&#x21BB; Refresh</button>
+    <div class="topbar-divider"></div>
+    <span class="user-info" id="user-info"></span>
+    <button class="h-btn" onclick="openChangePw()" title="Change Password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></button>
+    <button class="topbar-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main hidden" id="main">
+  <div class="loading-screen" id="loading-screen">
+    <div class="loading-spinner"></div>
+    <div style="margin-top: 16px;">Loading spiff data...</div>
+  </div>
+
+  <div class="hidden" id="dashboard-content">
+    <div class="summary-bar">
+      <div class="summary-card">
+        <div class="summary-label">Total Warranty Units</div>
+        <div class="summary-value" id="total-qty">--</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Total Invoices</div>
+        <div class="summary-value" id="total-invoices">--</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Months</div>
+        <div class="summary-value" id="total-months">--</div>
+      </div>
+    </div>
+
+    <div id="month-list"></div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay hidden" id="admin-overlay" onclick="closeAdminModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Admin &mdash; Access Management</div>
+      <button class="modal-close" onclick="closeAdminModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="admin-body"><span style="color:var(--text-faint)">Loading...</span></div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay hidden" id="pw-overlay" onclick="closePwModal()">
+  <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closePwModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <input type="password" class="login-input" id="pw-new" placeholder="New password (6+ chars)">
+      <input type="password" class="login-input" id="pw-confirm" placeholder="Confirm new password">
+      <div class="login-error" id="pw-error"></div>
+      <div class="login-success hidden" id="pw-success"></div>
+      <button class="login-btn" onclick="doChangePw()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-overlay hidden" id="help-overlay" onclick="closeHelpModal()">
+  <div class="modal" style="max-width:520px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Help</div>
+      <button class="modal-close" onclick="closeHelpModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" style="font-size:14px; line-height:1.7; color:var(--text-dim);">
+      <p><strong>CTL GetCover Spiff</strong> shows spiff-eligible GetCover warranty contracts (item codes matching <code>WRCB****GC</code> with 4+ chars between, excluding <code>WRCB3025GC</code>), grouped by invoice month and sales rep.</p>
+      <p style="margin-top:12px"><strong>Month groups</strong> &mdash; Click a month header to expand and see the per-rep breakdown. Data loads on demand.</p>
+      <p style="margin-top:12px"><strong>CSV download</strong> &mdash; The icon on each month header downloads that month's line detail (sales rep, SO #, invoice #, invoice date, warranty code, qty) as CSV.</p>
+      <p style="margin-top:12px"><strong>Date basis</strong> &mdash; Grouping is by <em>invoice date</em> &mdash; this matches when commissionable revenue is recognized.</p>
+      <p style="margin-top:12px"><strong>Theme</strong> &mdash; Use the sun icon to cycle themes. The palette icon lets you change the accent color and font size.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ACCENT PICKER MODAL -->
+<div class="modal-overlay hidden" id="accent-overlay" onclick="closeAccentPicker()">
+  <div class="modal" style="max-width:420px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Appearance</div>
+      <button class="modal-close" onclick="closeAccentPicker()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-group">
+        <label>Theme</label>
+        <div class="theme-row" id="theme-row">
+          <button class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+          <button class="theme-btn" data-theme="light-dim" onclick="setTheme('light-dim')">Light Dim</button>
+          <button class="theme-btn" data-theme="dark-dim" onclick="setTheme('dark-dim')">Dark Dim</button>
+          <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <label>Accent Color</label>
+        <div class="color-grid" id="color-grid"></div>
+      </div>
+      <div class="settings-group">
+        <label>Font Size</label>
+        <input type="range" class="font-slider" id="font-slider" min="12" max="20" step="1" value="15" oninput="setFontSize(this.value)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var WORKER_URL = 'https://getcoverspiff-worker.jburnett-589.workers.dev';
+var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+var _session = null;
+var _monthSummary = [];
+var _monthData = {};
+var _adminUnlocked = false;
+
+function formatMonth(ym) {
+  var parts = ym.split('-');
+  return MONTH_NAMES[parseInt(parts[1]) - 1] + ' ' + parts[0];
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr + 'T00:00:00');
+  return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+(function() {
+  var t = localStorage.getItem('gcs_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  var h = localStorage.getItem('gcs_accent_h');
+  var s = localStorage.getItem('gcs_accent_s');
+  if (h && s) {
+    document.documentElement.style.setProperty('--accent-h', h);
+    document.documentElement.style.setProperty('--accent-s', s + '%');
+  }
+  var fs = localStorage.getItem('gcs_font_size');
+  if (fs) document.documentElement.style.setProperty('--fs', fs + 'px');
+})();
+
+function switchLoginTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(function(el, i) {
+    el.classList.toggle('active', ['signin','request','ctl'][i] === tab);
+  });
+  document.getElementById('form-signin').classList.toggle('hidden', tab !== 'signin');
+  document.getElementById('form-request').classList.toggle('hidden', tab !== 'request');
+  document.getElementById('form-ctl').classList.toggle('hidden', tab !== 'ctl');
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-success').classList.add('hidden');
+}
+
+async function doSignIn() {
+  var email = document.getElementById('signin-email').value.trim();
+  var password = document.getElementById('signin-password').value;
+  var errorEl = document.getElementById('login-error');
+  errorEl.textContent = '';
+  if (!email || !password) { errorEl.textContent = 'Please enter email and password'; return; }
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password }),
+    });
+    var data = await resp.json();
+    if (data.error) { errorEl.textContent = data.error; return; }
+    onAuthSuccess(data);
+  } catch (err) {
+    errorEl.textContent = 'Sign-in failed: ' + err.message;
+  }
+}
+
+async function doRequestAccess() {
+  var email = document.getElementById('request-email').value.trim();
+  var password = document.getElementById('request-password').value;
+  var errorEl = document.getElementById('login-error');
+  var successEl = document.getElementById('login-success');
+  errorEl.textContent = '';
+  successEl.classList.add('hidden');
+  if (!email || !password) { errorEl.textContent = 'Please fill in all fields'; return; }
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password }),
+    });
+    var data = await resp.json();
+    if (data.error) { errorEl.textContent = data.error; return; }
+    if (data.status === 'approved') {
+      var loginResp = await fetch(WORKER_URL + '/gcs/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password }),
+      });
+      var loginData = await loginResp.json();
+      if (loginData.error) { errorEl.textContent = loginData.error; return; }
+      onAuthSuccess(loginData);
+    } else {
+      successEl.textContent = 'Access request submitted! A CTL administrator will review it.';
+      successEl.classList.remove('hidden');
+    }
+  } catch (err) {
+    errorEl.textContent = 'Request failed: ' + err.message;
+  }
+}
+
+function initGoogleSSO() {
+  ctlAuth.init({
+    appName: 'GetCoverSpiff',
+    buttonContainer: 'google-btn-container',
+    errorContainer: 'login-error',
+    onAuth: async function(user) {
+      var errorEl = document.getElementById('login-error');
+      try {
+        var resp = await fetch(WORKER_URL + '/gcs/login-google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ googleToken: ctlAuth.getToken() }),
+        });
+        var data = await resp.json();
+        if (data.error) { errorEl.textContent = data.error; return; }
+        onAuthSuccess(data);
+      } catch (err) {
+        errorEl.textContent = 'Sign-in failed: ' + err.message;
+      }
+    },
+    onLogout: function() {},
+  });
+}
+
+function onAuthSuccess(data) {
+  _session = { token: data.token, email: data.email, isAdmin: data.isAdmin };
+  localStorage.setItem('gcs_session_token', data.token);
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('topbar').classList.remove('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  document.getElementById('user-info').textContent = data.email.split('@')[0];
+  if (data.isAdmin) document.getElementById('btn-admin').classList.remove('hidden');
+  loadSummary();
+}
+
+async function checkExistingSession() {
+  var token = localStorage.getItem('gcs_session_token');
+  if (token) {
+    try {
+      var resp = await fetch(WORKER_URL + '/gcs/verify?token=' + token);
+      var data = await resp.json();
+      if (data.valid) {
+        onAuthSuccess({ token: token, email: data.email, isAdmin: data.isAdmin });
+        return true;
+      }
+    } catch (e) {}
+    localStorage.removeItem('gcs_session_token');
+  }
+  var ctlToken = localStorage.getItem('ctl_token');
+  if (ctlToken && typeof ctlAuth !== 'undefined' && ctlAuth.isAuthenticated()) {
+    try {
+      var resp2 = await fetch(WORKER_URL + '/gcs/login-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleToken: ctlToken }),
+      });
+      var data2 = await resp2.json();
+      if (!data2.error) { onAuthSuccess(data2); return true; }
+    } catch (e) {}
+  }
+  return false;
+}
+
+async function doLogout() {
+  if (_session && _session.token) {
+    try {
+      await fetch(WORKER_URL + '/gcs/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: _session.token }),
+      });
+    } catch (e) {}
+  }
+  _session = null;
+  localStorage.removeItem('gcs_session_token');
+  if (typeof ctlAuth !== 'undefined') ctlAuth.logout();
+  else location.reload();
+}
+
+async function loadSummary() {
+  document.getElementById('loading-screen').classList.remove('hidden');
+  document.getElementById('dashboard-content').classList.add('hidden');
+
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/summary?token=' + _session.token);
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    _monthSummary = data.summary || [];
+    _monthData = {};
+    renderSummary();
+    renderMonthList();
+
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('dashboard-content').classList.remove('hidden');
+  } catch (err) {
+    document.getElementById('loading-screen').innerHTML =
+      '<div style="color:var(--red)">Failed to load data: ' + escapeHtml(err.message) + '</div>' +
+      '<button class="login-btn" style="margin-top:16px;max-width:200px;" onclick="loadSummary()">Retry</button>';
+  }
+}
+
+function renderSummary() {
+  var totalQty = 0;
+  var totalInvoices = 0;
+  for (var i = 0; i < _monthSummary.length; i++) {
+    totalQty += (_monthSummary[i].totalQty || 0);
+    totalInvoices += (_monthSummary[i].invoiceCount || 0);
+  }
+  document.getElementById('total-qty').textContent = totalQty.toLocaleString();
+  document.getElementById('total-invoices').textContent = totalInvoices.toLocaleString();
+  document.getElementById('total-months').textContent = _monthSummary.length.toLocaleString();
+}
+
+function renderMonthList() {
+  if (_monthSummary.length === 0) {
+    document.getElementById('month-list').innerHTML = '<div class="empty-state">No spiff-eligible warranty sales found.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < _monthSummary.length; i++) {
+    var m = _monthSummary[i];
+    html += '<div class="month-group collapsed" id="month-' + m.month + '">';
+    html += '<div class="month-header" onclick="toggleMonth(\'' + m.month + '\')">';
+    html += '<span class="month-icon">&#x25BC;</span>';
+    html += '<span class="month-label">' + formatMonth(m.month) + '</span>';
+    html += '<div class="month-stats">';
+    html += '<span class="month-count">' + (m.invoiceCount || 0).toLocaleString() + ' invoices &middot; ' + (m.repCount || 0) + ' reps</span>';
+    html += '<span class="month-units">' + (m.totalQty || 0).toLocaleString() + ' units</span>';
+    html += '<button class="month-csv" onclick="event.stopPropagation(); downloadMonthCSV(\'' + m.month + '\')" title="Download CSV">';
+    html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    html += '</button>';
+    html += '</div></div>';
+    html += '<div class="month-body">';
+    html += '<div class="month-loading" id="loading-' + m.month + '">Click to load details...</div>';
+    html += '</div></div>';
+  }
+  document.getElementById('month-list').innerHTML = html;
+}
+
+async function toggleMonth(month) {
+  var el = document.getElementById('month-' + month);
+  if (!el) return;
+  var wasCollapsed = el.classList.contains('collapsed');
+  el.classList.toggle('collapsed');
+
+  if (wasCollapsed && !_monthData[month]) {
+    var loadingEl = document.getElementById('loading-' + month);
+    if (loadingEl) loadingEl.textContent = 'Loading details...';
+
+    try {
+      var resp = await fetch(WORKER_URL + '/gcs/details?token=' + _session.token + '&month=' + month);
+      var data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      _monthData[month] = data.rows || [];
+      renderMonthDetails(month);
+    } catch (err) {
+      if (loadingEl) loadingEl.innerHTML = '<span style="color:var(--red)">Failed: ' + escapeHtml(err.message) + '</span>';
+    }
+  }
+}
+
+function renderMonthDetails(month) {
+  var rows = _monthData[month] || [];
+  var el = document.getElementById('month-' + month);
+  if (!el) return;
+  var body = el.querySelector('.month-body');
+
+  if (rows.length === 0) {
+    body.innerHTML = '<div class="empty-state">No spiff-eligible rows for this month.</div>';
+    return;
+  }
+
+  var byRep = {};
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var rep = r.salesRep || '(Unassigned)';
+    if (!byRep[rep]) byRep[rep] = { rows: [], qty: 0 };
+    byRep[rep].rows.push(r);
+    byRep[rep].qty += Number(r.qty) || 0;
+  }
+
+  var repNames = Object.keys(byRep).sort();
+  var html = '';
+  for (var j = 0; j < repNames.length; j++) {
+    var name = repNames[j];
+    var block = byRep[name];
+    html += '<div class="rep-block">';
+    html += '<div class="rep-header">';
+    html += '<span class="rep-name">' + escapeHtml(name) + '</span>';
+    html += '<span class="rep-subtotal">' + block.qty.toLocaleString() + ' units</span>';
+    html += '</div>';
+    html += '<table class="spiff-table"><thead><tr>';
+    html += '<th>Sales Order #</th><th>Invoice #</th><th>Invoice Date</th><th>Warranty Code</th><th style="text-align:right">Qty</th>';
+    html += '</tr></thead><tbody>';
+    for (var k = 0; k < block.rows.length; k++) {
+      var rr = block.rows[k];
+      html += '<tr>';
+      html += '<td class="dt-so">' + escapeHtml(rr.salesOrderNo || '--') + '</td>';
+      html += '<td class="dt-inv">' + escapeHtml(rr.invoiceNo || '--') + '</td>';
+      html += '<td class="dt-date">' + formatDate(rr.invoiceDate) + '</td>';
+      html += '<td class="dt-code">' + escapeHtml(rr.warrantyCode || '--') + '</td>';
+      html += '<td class="dt-qty">' + (Number(rr.qty) || 0).toLocaleString() + '</td>';
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+  }
+
+  body.innerHTML = html;
+}
+
+function downloadMonthCSV(month) {
+  if (!_session || !_session.token) return;
+  window.open(WORKER_URL + '/gcs/csv?token=' + _session.token + '&month=' + month, '_blank');
+}
+
+var THEMES = ['light', 'light-dim', 'dark-dim', 'dark'];
+
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  var idx = THEMES.indexOf(current);
+  setTheme(THEMES[(idx + 1) % THEMES.length]);
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('gcs_theme', theme);
+  updateThemeButtons();
+  savePrefs();
+}
+
+function updateThemeButtons() {
+  var current = document.documentElement.getAttribute('data-theme') || 'dark';
+  document.querySelectorAll('.theme-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-theme') === current);
+  });
+}
+
+function setFontSize(size) {
+  document.documentElement.style.setProperty('--fs', size + 'px');
+  localStorage.setItem('gcs_font_size', size);
+  savePrefs();
+}
+
+function openAccentPicker() {
+  document.getElementById('accent-overlay').classList.remove('hidden');
+  updateThemeButtons();
+  buildColorGrid();
+  var fs = parseInt(localStorage.getItem('gcs_font_size') || '15');
+  document.getElementById('font-slider').value = fs;
+}
+
+function closeAccentPicker() {
+  document.getElementById('accent-overlay').classList.add('hidden');
+}
+
+function buildColorGrid() {
+  var grid = document.getElementById('color-grid');
+  var hues = [0, 20, 40, 60, 100, 140, 160, 180, 200, 220, 240, 260, 280, 300, 330, 350];
+  var currentH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--accent-h')) || 270;
+  var html = '';
+  for (var i = 0; i < hues.length; i++) {
+    var h = hues[i];
+    var active = Math.abs(h - currentH) < 15 ? ' active' : '';
+    html += '<div class="color-swatch' + active + '" style="background:hsl(' + h + ', 70%, 50%)" onclick="setAccentHue(' + h + ')"></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function setAccentHue(h) {
+  document.documentElement.style.setProperty('--accent-h', h);
+  document.documentElement.style.setProperty('--accent-s', '70%');
+  localStorage.setItem('gcs_accent_h', h);
+  localStorage.setItem('gcs_accent_s', '70');
+  buildColorGrid();
+  savePrefs();
+}
+
+var _prefsSaveTimer = null;
+function savePrefs() {
+  if (!_session) return;
+  if (_prefsSaveTimer) clearTimeout(_prefsSaveTimer);
+  _prefsSaveTimer = setTimeout(function() {
+    fetch(WORKER_URL + '/gcs/prefs', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: _session.token,
+        prefs: {
+          theme: localStorage.getItem('gcs_theme'),
+          accentH: localStorage.getItem('gcs_accent_h'),
+          accentS: localStorage.getItem('gcs_accent_s'),
+          fontSize: localStorage.getItem('gcs_font_size'),
+        }
+      }),
+    }).catch(function() {});
+  }, 2000);
+}
+
+function openChangePw() {
+  document.getElementById('pw-overlay').classList.remove('hidden');
+  document.getElementById('pw-new').value = '';
+  document.getElementById('pw-confirm').value = '';
+  document.getElementById('pw-error').textContent = '';
+  document.getElementById('pw-success').classList.add('hidden');
+}
+
+function closePwModal() {
+  document.getElementById('pw-overlay').classList.add('hidden');
+}
+
+async function doChangePw() {
+  var pw1 = document.getElementById('pw-new').value;
+  var pw2 = document.getElementById('pw-confirm').value;
+  var errorEl = document.getElementById('pw-error');
+  var successEl = document.getElementById('pw-success');
+  errorEl.textContent = '';
+  successEl.classList.add('hidden');
+
+  if (pw1.length < 6) { errorEl.textContent = 'Password must be at least 6 characters'; return; }
+  if (pw1 !== pw2) { errorEl.textContent = 'Passwords do not match'; return; }
+
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, newPassword: pw1 }),
+    });
+    var data = await resp.json();
+    if (data.error) { errorEl.textContent = data.error; return; }
+    successEl.textContent = 'Password updated successfully!';
+    successEl.classList.remove('hidden');
+  } catch (err) {
+    errorEl.textContent = 'Failed: ' + err.message;
+  }
+}
+
+function openAdminModal() {
+  document.getElementById('admin-overlay').classList.remove('hidden');
+  if (_adminUnlocked) loadAdminContent();
+  else renderAdminGate();
+}
+
+function closeAdminModal() {
+  document.getElementById('admin-overlay').classList.add('hidden');
+}
+
+function renderAdminGate() {
+  var body = document.getElementById('admin-body');
+  body.innerHTML =
+    '<div class="admin-gate">' +
+    '<div style="font-size:14px;color:var(--text-dim);margin-bottom:8px;">Enter admin password to continue</div>' +
+    '<input type="password" class="login-input" id="admin-pin" placeholder="Admin password" style="max-width:280px;">' +
+    '<button class="login-btn" style="max-width:280px;" onclick="verifyAdminPin()">Unlock</button>' +
+    '<div class="login-error" id="admin-pin-error"></div>' +
+    '</div>';
+}
+
+async function verifyAdminPin() {
+  var pin = document.getElementById('admin-pin').value;
+  var errorEl = document.getElementById('admin-pin-error');
+  errorEl.textContent = '';
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/admin/verify-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, pin: pin }),
+    });
+    var data = await resp.json();
+    if (data.error) { errorEl.textContent = data.error; return; }
+    _adminUnlocked = true;
+    loadAdminContent();
+  } catch (err) {
+    errorEl.textContent = 'Failed: ' + err.message;
+  }
+}
+
+async function loadAdminContent() {
+  var body = document.getElementById('admin-body');
+  body.innerHTML = '<span style="color:var(--text-faint)">Loading...</span>';
+
+  try {
+    var [pendingResp, usersResp] = await Promise.all([
+      fetch(WORKER_URL + '/gcs/admin/pending?token=' + _session.token),
+      fetch(WORKER_URL + '/gcs/admin/users?token=' + _session.token),
+    ]);
+    var pendingData = await pendingResp.json();
+    var usersData = await usersResp.json();
+
+    var html = '';
+    html += '<div class="admin-tabs">';
+    html += '<button class="admin-tab active" onclick="switchAdminTab(\'pending\', this)">Pending (' + (pendingData.requests || []).length + ')</button>';
+    html += '<button class="admin-tab" onclick="switchAdminTab(\'users\', this)">All Users (' + (usersData.users || []).length + ')</button>';
+    html += '</div>';
+
+    html += '<div id="admin-tab-pending">';
+    if (pendingData.requests && pendingData.requests.length > 0) {
+      for (var i = 0; i < pendingData.requests.length; i++) {
+        var req = pendingData.requests[i];
+        html += '<div class="admin-req-card">';
+        html += '<span class="admin-req-email">' + escapeHtml(req.email) + '</span>';
+        html += '<span class="admin-req-date">' + escapeHtml((req.requestedAt || '').split('T')[0]) + '</span>';
+        html += '<button class="admin-req-btn approve" onclick="adminApprove(\'' + req.email + '\')">Approve</button>';
+        html += '<button class="admin-req-btn deny" onclick="adminDeny(\'' + req.email + '\')">Deny</button>';
+        html += '</div>';
+      }
+    } else {
+      html += '<div class="empty-state">No pending requests</div>';
+    }
+    html += '</div>';
+
+    html += '<div id="admin-tab-users" class="hidden">';
+    if (usersData.users && usersData.users.length > 0) {
+      for (var j = 0; j < usersData.users.length; j++) {
+        var u = usersData.users[j];
+        html += '<div class="admin-user-row">';
+        html += '<span class="admin-user-email">' + escapeHtml(u.email) + '</span>';
+        html += '<span class="admin-user-status ' + escapeHtml(u.status) + '">' + escapeHtml(u.status) + '</span>';
+        html += '<div class="admin-user-actions">';
+        html += '<button class="admin-user-btn" onclick="adminResetPw(\'' + u.email + '\')">Reset PW</button>';
+        html += '<button class="admin-user-btn" onclick="adminRemove(\'' + u.email + '\')" style="color:var(--red)">Remove</button>';
+        html += '</div></div>';
+      }
+    } else {
+      html += '<div class="empty-state">No users</div>';
+    }
+    html += '</div>';
+
+    html += '<div id="admin-temp-pw" class="admin-temp-pw hidden"></div>';
+    body.innerHTML = html;
+  } catch (err) {
+    body.innerHTML = '<div style="color:var(--red)">Failed to load: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('admin-tab-pending').classList.toggle('hidden', tab !== 'pending');
+  document.getElementById('admin-tab-users').classList.toggle('hidden', tab !== 'users');
+}
+
+async function adminApprove(email) {
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/admin/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, email: email }),
+    });
+    var data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+    loadAdminContent();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function adminDeny(email) {
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/admin/deny', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, email: email }),
+    });
+    var data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+    loadAdminContent();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function adminResetPw(email) {
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/admin/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, email: email }),
+    });
+    var data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+    var pwEl = document.getElementById('admin-temp-pw');
+    pwEl.textContent = 'New password for ' + email + ': ' + data.tempPassword;
+    pwEl.classList.remove('hidden');
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function adminRemove(email) {
+  if (!confirm('Remove user ' + email + '?')) return;
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/admin/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, email: email }),
+    });
+    var data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+    loadAdminContent();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+function openHelpModal() { document.getElementById('help-overlay').classList.remove('hidden'); }
+function closeHelpModal() { document.getElementById('help-overlay').classList.add('hidden'); }
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var signinForm = document.getElementById('form-signin');
+    var requestForm = document.getElementById('form-request');
+    var adminPin = document.getElementById('admin-pin');
+    if (signinForm && !signinForm.classList.contains('hidden') && !document.getElementById('login-overlay').classList.contains('hidden')) doSignIn();
+    else if (requestForm && !requestForm.classList.contains('hidden') && !document.getElementById('login-overlay').classList.contains('hidden')) doRequestAccess();
+    else if (adminPin && adminPin === document.activeElement) verifyAdminPin();
+  }
+  if (e.key === 'Escape') {
+    if (!document.getElementById('admin-overlay').classList.contains('hidden')) closeAdminModal();
+    else if (!document.getElementById('pw-overlay').classList.contains('hidden')) closePwModal();
+    else if (!document.getElementById('help-overlay').classList.contains('hidden')) closeHelpModal();
+    else if (!document.getElementById('accent-overlay').classList.contains('hidden')) closeAccentPicker();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
+  var hasSession = await checkExistingSession();
+  if (!hasSession) initGoogleSSO();
+});
+</script>
+</body>
+</html>
