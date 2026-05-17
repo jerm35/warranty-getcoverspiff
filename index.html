@@ -218,6 +218,14 @@ input, button, select { font-family: inherit; font-size: inherit; }
 .dt-date { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); white-space: nowrap; }
 .dt-code { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--purple); }
 .dt-qty { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--green); text-align: right; }
+.spiff-table tr.devices-row td { padding-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.spiff-table tr.devices-row:hover td { background: var(--surface2); }
+.devices-cell { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.devices-cell .devices-label { color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 6px; font-size: 11px; }
+.devices-cell .device-item { display: inline-block; margin-right: 14px; }
+.devices-cell .device-code { font-family: var(--font-mono); color: var(--cyan); font-weight: 600; }
+.devices-cell .device-name { color: var(--text); }
+.devices-cell .device-qty { font-family: var(--font-mono); color: var(--green); font-weight: 600; }
 
 .modal-overlay {
   position: fixed; inset: 0; z-index: 500;
@@ -497,6 +505,28 @@ function formatDate(dateStr) {
 function escapeHtml(s) {
   if (s == null) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Pretty-print the pipe-separated device string from /gcs/details.
+// Each chunk looks like "ITEM_CODE — Display Name xQTY".
+function renderDevices(s) {
+  var parts = String(s).split(' | ');
+  var out = '';
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i];
+    var qtyMatch = p.match(/ x(\d+)$/);
+    var qty = qtyMatch ? qtyMatch[1] : '';
+    var rest = qtyMatch ? p.slice(0, qtyMatch.index) : p;
+    var dashIdx = rest.indexOf(' — ');
+    var code = dashIdx >= 0 ? rest.slice(0, dashIdx) : rest;
+    var name = dashIdx >= 0 ? rest.slice(dashIdx + 3) : '';
+    out += '<span class="device-item">';
+    out += '<span class="device-code">' + escapeHtml(code) + '</span>';
+    if (name) out += ' <span class="device-name">' + escapeHtml(name) + '</span>';
+    if (qty) out += ' <span class="device-qty">x' + escapeHtml(qty) + '</span>';
+    out += '</span>';
+  }
+  return out;
 }
 
 (function() {
@@ -781,6 +811,11 @@ function renderMonthDetails(month) {
       html += '<td class="dt-code">' + escapeHtml(rr.warrantyCode || '--') + '</td>';
       html += '<td class="dt-qty">' + (Number(rr.qty) || 0).toLocaleString() + '</td>';
       html += '</tr>';
+      if (rr.devices) {
+        html += '<tr class="devices-row"><td colspan="5" class="devices-cell">';
+        html += '<span class="devices-label">Device</span>' + renderDevices(rr.devices);
+        html += '</td></tr>';
+      }
     }
     html += '</tbody></table></div>';
   }
