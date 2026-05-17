@@ -482,7 +482,6 @@ var MONTH_NAMES = ['January','February','March','April','May','June','July','Aug
 var _session = null;
 var _monthSummary = [];
 var _monthData = {};
-var _adminUnlocked = false;
 
 function formatMonth(ym) {
   var parts = ym.split('-');
@@ -917,42 +916,11 @@ async function doChangePw() {
 
 function openAdminModal() {
   document.getElementById('admin-overlay').classList.remove('hidden');
-  if (_adminUnlocked) loadAdminContent();
-  else renderAdminGate();
+  loadAdminContent();
 }
 
 function closeAdminModal() {
   document.getElementById('admin-overlay').classList.add('hidden');
-}
-
-function renderAdminGate() {
-  var body = document.getElementById('admin-body');
-  body.innerHTML =
-    '<div class="admin-gate">' +
-    '<div style="font-size:14px;color:var(--text-dim);margin-bottom:8px;">Enter admin password to continue</div>' +
-    '<input type="password" class="login-input" id="admin-pin" placeholder="Admin password" style="max-width:280px;">' +
-    '<button class="login-btn" style="max-width:280px;" onclick="verifyAdminPin()">Unlock</button>' +
-    '<div class="login-error" id="admin-pin-error"></div>' +
-    '</div>';
-}
-
-async function verifyAdminPin() {
-  var pin = document.getElementById('admin-pin').value;
-  var errorEl = document.getElementById('admin-pin-error');
-  errorEl.textContent = '';
-  try {
-    var resp = await fetch(WORKER_URL + '/gcs/admin/verify-pin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: _session.token, pin: pin }),
-    });
-    var data = await resp.json();
-    if (data.error) { errorEl.textContent = data.error; return; }
-    _adminUnlocked = true;
-    loadAdminContent();
-  } catch (err) {
-    errorEl.textContent = 'Failed: ' + err.message;
-  }
 }
 
 async function loadAdminContent() {
@@ -995,8 +963,16 @@ async function loadAdminContent() {
         var u = usersData.users[j];
         html += '<div class="admin-user-row">';
         html += '<span class="admin-user-email">' + escapeHtml(u.email) + '</span>';
+        if (u.isAdmin) {
+          html += '<span class="admin-user-status approved" style="background:hsl(270,60%,90%);color:hsl(270,60%,30%);">admin</span>';
+        }
         html += '<span class="admin-user-status ' + escapeHtml(u.status) + '">' + escapeHtml(u.status) + '</span>';
         html += '<div class="admin-user-actions">';
+        if (u.isAdmin) {
+          html += '<button class="admin-user-btn" onclick="adminSetAdmin(\'' + u.email + '\', false)">Revoke Admin</button>';
+        } else {
+          html += '<button class="admin-user-btn" onclick="adminSetAdmin(\'' + u.email + '\', true)" style="color:var(--accent)">Make Admin</button>';
+        }
         html += '<button class="admin-user-btn" onclick="adminResetPw(\'' + u.email + '\')">Reset PW</button>';
         html += '<button class="admin-user-btn" onclick="adminRemove(\'' + u.email + '\')" style="color:var(--red)">Remove</button>';
         html += '</div></div>';
@@ -1075,6 +1051,21 @@ async function adminRemove(email) {
   } catch (err) { alert('Failed: ' + err.message); }
 }
 
+async function adminSetAdmin(email, makeAdmin) {
+  var verb = makeAdmin ? 'Make ' + email + ' an admin?' : 'Revoke admin from ' + email + '?';
+  if (!confirm(verb)) return;
+  try {
+    var resp = await fetch(WORKER_URL + '/gcs/admin/set-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _session.token, email: email, isAdmin: !!makeAdmin }),
+    });
+    var data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+    loadAdminContent();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
 function openHelpModal() { document.getElementById('help-overlay').classList.remove('hidden'); }
 function closeHelpModal() { document.getElementById('help-overlay').classList.add('hidden'); }
 
@@ -1082,10 +1073,8 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     var signinForm = document.getElementById('form-signin');
     var requestForm = document.getElementById('form-request');
-    var adminPin = document.getElementById('admin-pin');
     if (signinForm && !signinForm.classList.contains('hidden') && !document.getElementById('login-overlay').classList.contains('hidden')) doSignIn();
     else if (requestForm && !requestForm.classList.contains('hidden') && !document.getElementById('login-overlay').classList.contains('hidden')) doRequestAccess();
-    else if (adminPin && adminPin === document.activeElement) verifyAdminPin();
   }
   if (e.key === 'Escape') {
     if (!document.getElementById('admin-overlay').classList.contains('hidden')) closeAdminModal();
