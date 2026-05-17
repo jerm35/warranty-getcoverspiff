@@ -218,14 +218,21 @@ input, button, select { font-family: inherit; font-size: inherit; }
 .dt-date { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); white-space: nowrap; }
 .dt-code { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--purple); }
 .dt-qty { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--green); text-align: right; }
-.spiff-table tr.devices-row td { padding-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border); background: var(--surface2); }
-.spiff-table tr.devices-row:hover td { background: var(--surface2); }
-.devices-cell { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-.devices-cell .devices-label { color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 6px; font-size: 11px; }
+.spiff-table tr.devices-row td,
+.spiff-table tr.customer-row td { padding-top: 0; padding-bottom: 4px; border-bottom: none; background: var(--surface2); }
+.spiff-table tr.devices-row td { padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.spiff-table tr.devices-row:hover td,
+.spiff-table tr.customer-row:hover td { background: var(--surface2); }
+.spiff-table tr.customer-row td { padding-top: 8px; }
+.devices-cell, .customer-cell { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.devices-cell .devices-label, .customer-cell .customer-label { color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 6px; font-size: 11px; }
 .devices-cell .device-item { display: inline-block; margin-right: 14px; }
 .devices-cell .device-code { font-family: var(--font-mono); color: var(--cyan); font-weight: 600; }
 .devices-cell .device-name { color: var(--text); }
 .devices-cell .device-qty { font-family: var(--font-mono); color: var(--green); font-weight: 600; }
+.customer-cell .customer-name { color: var(--text); font-weight: 600; }
+.customer-cell .customer-ship { color: var(--text-faint); margin-left: 12px; }
+.customer-cell .customer-ship svg { width: 11px; height: 11px; vertical-align: -1px; margin-right: 3px; }
 
 .modal-overlay {
   position: fixed; inset: 0; z-index: 500;
@@ -811,6 +818,21 @@ function renderMonthDetails(month) {
       html += '<td class="dt-code">' + escapeHtml(rr.warrantyCode || '--') + '</td>';
       html += '<td class="dt-qty">' + (Number(rr.qty) || 0).toLocaleString() + '</td>';
       html += '</tr>';
+      if (rr.customerName || rr.shippingCity || rr.shippingState) {
+        html += '<tr class="customer-row"><td colspan="5" class="customer-cell">';
+        html += '<span class="customer-label">Customer</span>';
+        if (rr.customerName) html += '<span class="customer-name">' + escapeHtml(rr.customerName) + '</span>';
+        var shipParts = [];
+        if (rr.shippingCity) shipParts.push(rr.shippingCity);
+        if (rr.shippingState) shipParts.push(rr.shippingState);
+        if (shipParts.length) {
+          html += '<span class="customer-ship">';
+          html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+          html += 'Ship to ' + escapeHtml(shipParts.join(', '));
+          html += '</span>';
+        }
+        html += '</td></tr>';
+      }
       if (rr.devices) {
         html += '<tr class="devices-row"><td colspan="5" class="devices-cell">';
         html += '<span class="devices-label">Device</span>' + renderDevices(rr.devices);
