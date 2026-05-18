@@ -236,6 +236,16 @@ input, button, select { font-family: inherit; font-size: inherit; }
 .customer-cell .customer-name { color: var(--text); font-weight: 600; }
 .customer-cell .customer-ship { color: var(--text-faint); margin-left: 12px; }
 .customer-cell .customer-ship svg { width: 11px; height: 11px; vertical-align: -1px; margin-right: 3px; }
+.spiff-table tr.team-row td { padding-top: 0; padding-bottom: 4px; border-bottom: none; background: var(--surface2); }
+.spiff-table tr.team-row:hover td { background: var(--surface2); }
+.team-cell { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.team-cell .team-label { color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 6px; font-size: 11px; }
+.team-cell .team-member { display: inline-block; margin-right: 10px; padding: 1px 8px; border-radius: var(--radius-full); background: var(--surface); border: 1px solid var(--border); }
+.team-cell .team-member.primary { border-color: var(--accent); }
+.team-cell .team-name { color: var(--text); font-weight: 600; }
+.team-cell .team-role { color: var(--text-faint); margin-left: 4px; font-size: 11px; }
+.team-cell .team-pct { font-family: var(--font-mono); color: var(--green); font-weight: 600; margin-left: 6px; }
+.team-cell .team-primary-tag { color: var(--accent); font-size: 10px; margin-left: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .modal-overlay {
   position: fixed; inset: 0; z-index: 500;
@@ -515,6 +525,34 @@ function formatDate(dateStr) {
 function escapeHtml(s) {
   if (s == null) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Pretty-print the pipe-separated sales team string from /gcs/details.
+// Each chunk looks like "Employee Name (Role) — 100.0% *" where the trailing
+// "*" marks the primary rep.
+function renderSalesTeam(s) {
+  var parts = String(s).split(' | ');
+  var out = '';
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i];
+    var primary = / \*$/.test(p);
+    var rest = primary ? p.replace(/ \*$/, '') : p;
+    // Split off " — <pct>%"
+    var pctIdx = rest.lastIndexOf(' — ');
+    var head = pctIdx >= 0 ? rest.slice(0, pctIdx) : rest;
+    var pct = pctIdx >= 0 ? rest.slice(pctIdx + 3) : '';
+    // Optionally split off " (Role)"
+    var roleMatch = head.match(/^(.+?) \(([^)]+)\)$/);
+    var name = roleMatch ? roleMatch[1] : head;
+    var role = roleMatch ? roleMatch[2] : '';
+    out += '<span class="team-member' + (primary ? ' primary' : '') + '">';
+    out += '<span class="team-name">' + escapeHtml(name) + '</span>';
+    if (role) out += '<span class="team-role">' + escapeHtml(role) + '</span>';
+    if (pct) out += '<span class="team-pct">' + escapeHtml(pct) + '</span>';
+    if (primary) out += '<span class="team-primary-tag">Primary</span>';
+    out += '</span>';
+  }
+  return out;
 }
 
 // Pretty-print the pipe-separated device string from /gcs/details.
@@ -842,6 +880,11 @@ function renderMonthDetails(month) {
           html += 'Ship to ' + escapeHtml(shipParts.join(', '));
           html += '</span>';
         }
+        html += '</td></tr>';
+      }
+      if (rr.salesTeam) {
+        html += '<tr class="team-row"><td colspan="5" class="team-cell">';
+        html += '<span class="team-label">Sales Team</span>' + renderSalesTeam(rr.salesTeam);
         html += '</td></tr>';
       }
       if (rr.devices) {
