@@ -216,6 +216,8 @@ input, button, select { font-family: inherit; font-size: inherit; }
 .spiff-table tr:last-child td { border-bottom: none; }
 .spiff-table tr:hover td { background: var(--surface2); }
 .dt-so, .dt-inv { font-family: var(--font-mono); font-size: 13px; color: var(--accent-on-surface); white-space: nowrap; }
+.dt-so a, .dt-inv a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.dt-so a:hover, .dt-inv a:hover { color: var(--accent); border-bottom-style: solid; }
 .dt-date { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); white-space: nowrap; }
 .dt-code { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--purple); }
 .dt-qty { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--green); text-align: right; }
@@ -813,8 +815,16 @@ function renderMonthDetails(month) {
     for (var k = 0; k < block.rows.length; k++) {
       var rr = block.rows[k];
       html += '<tr>';
-      html += '<td class="dt-so">' + escapeHtml(rr.salesOrderNo || '--') + '</td>';
-      html += '<td class="dt-inv">' + escapeHtml(rr.invoiceNo || '--') + '</td>';
+      var soText = escapeHtml(rr.salesOrderNo || '--');
+      var soHtml = rr.salesOrderUrl
+        ? '<a href="' + escapeHtml(rr.salesOrderUrl) + '" target="_blank" rel="noopener noreferrer" title="Open in NetSuite">' + soText + '</a>'
+        : soText;
+      var invText = escapeHtml(rr.invoiceNo || '--');
+      var invHtml = rr.invoiceUrl
+        ? '<a href="' + escapeHtml(rr.invoiceUrl) + '" target="_blank" rel="noopener noreferrer" title="Open in NetSuite">' + invText + '</a>'
+        : invText;
+      html += '<td class="dt-so">' + soHtml + '</td>';
+      html += '<td class="dt-inv">' + invHtml + '</td>';
       html += '<td class="dt-date">' + formatDate(rr.invoiceDate) + '</td>';
       html += '<td class="dt-code">' + escapeHtml(rr.warrantyCode || '--') + '</td>';
       html += '<td class="dt-qty">' + (Number(rr.qty) || 0).toLocaleString() + '</td>';
