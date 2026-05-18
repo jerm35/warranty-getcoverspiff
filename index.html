@@ -233,6 +233,7 @@ input, button, select { font-family: inherit; font-size: inherit; }
 .devices-cell .device-code { font-family: var(--font-mono); color: var(--cyan); font-weight: 600; }
 .devices-cell .device-name { color: var(--text); }
 .devices-cell .device-qty { font-family: var(--font-mono); color: var(--green); font-weight: 600; }
+.devices-cell .device-amount { font-family: var(--font-mono); color: var(--green); font-weight: 600; margin-left: 6px; }
 .customer-cell .customer-name { color: var(--text); font-weight: 600; }
 .customer-cell .customer-ship { color: var(--text-faint); margin-left: 12px; }
 .customer-cell .customer-ship svg { width: 11px; height: 11px; vertical-align: -1px; margin-right: 3px; }
@@ -556,22 +557,33 @@ function renderSalesTeam(s) {
 }
 
 // Pretty-print the pipe-separated device string from /gcs/details.
-// Each chunk looks like "ITEM_CODE — Display Name xQTY".
+// Each chunk looks like "ITEM_CODE — Display Name xQTY @ $AMOUNT".
 function renderDevices(s) {
   var parts = String(s).split(' | ');
   var out = '';
   for (var i = 0; i < parts.length; i++) {
     var p = parts[i];
-    var qtyMatch = p.match(/ x(\d+)$/);
-    var qty = qtyMatch ? qtyMatch[1] : '';
-    var rest = qtyMatch ? p.slice(0, qtyMatch.index) : p;
+    // Tail: " xQTY @ $AMOUNT" — strip and capture both
+    var tail = p.match(/ x(\d+) @ \$([\d.]+)$/);
+    var qty = '', amount = '', rest = p;
+    if (tail) {
+      qty = tail[1];
+      amount = tail[2];
+      rest = p.slice(0, tail.index);
+    } else {
+      // Backward-compat for entries without amount
+      var qOnly = p.match(/ x(\d+)$/);
+      if (qOnly) { qty = qOnly[1]; rest = p.slice(0, qOnly.index); }
+    }
     var dashIdx = rest.indexOf(' — ');
     var code = dashIdx >= 0 ? rest.slice(0, dashIdx) : rest;
     var name = dashIdx >= 0 ? rest.slice(dashIdx + 3) : '';
+    var fmtAmount = amount ? '$' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
     out += '<span class="device-item">';
     out += '<span class="device-code">' + escapeHtml(code) + '</span>';
     if (name) out += ' <span class="device-name">' + escapeHtml(name) + '</span>';
     if (qty) out += ' <span class="device-qty">x' + escapeHtml(qty) + '</span>';
+    if (fmtAmount) out += '<span class="device-amount">' + escapeHtml(fmtAmount) + '</span>';
     out += '</span>';
   }
   return out;
