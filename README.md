@@ -20,6 +20,9 @@ Direct GitHub Pages access (`https://jerm35.github.io/warranty-getcoverspiff/`) 
 ## Files
 
 - `index.html` — the app (HTML/CSS/JS inline)
+- `docs/USER_GUIDE.md` ([.docx](docs/USER_GUIDE.docx)) — end-user reading guide, FAQ, CSV explainer
+- `docs/ADMIN.md` ([.docx](docs/ADMIN.docx)) — architecture, deploy/rollback, secrets, integrations, troubleshooting
+- `CLAUDE.md` — onboarding notes for AI assistants working in this repo
 
 ## Dependencies
 
